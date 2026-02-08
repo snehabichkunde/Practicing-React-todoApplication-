@@ -1,17 +1,25 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { initialUsers, initialTasks } from "../data/initialData";
-import  {categories}  from "../data/categories";
-import  {priorities}  from "../data/priorities";
-
-
+import { useTasks } from "../context/TaskContext";
+import { useUsers } from "../context/UserContext";
+import { categories } from "../data/categories";
+import { priorities } from "../data/priorities";
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const currentUser = initialUsers.find(u => u.email === user.email);
+  const { getUserByEmail } = useUsers();
+  const {
+    getTodoTasks,
+    getCompletedTasks,
+    addTask,
+    toggleTaskCompletion,
+    deleteTask,
+    filterTasks,
+    isLoading
+  } = useTasks();
+
+  const currentUser = getUserByEmail(user.email);
   
-  // State management
-  const [tasks, setTasks] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [filterCategory, setFilterCategory] = useState("All");
   const [filterPriority, setFilterPriority] = useState("All");
@@ -19,22 +27,6 @@ const Dashboard = () => {
   const [addToCompleted, setAddToCompleted] = useState(false);
   const [newTask, setNewTask] = useState(getInitialTaskState());
 
-//   const categories = ['Work', 'Personal', 'Shopping', 'Health', 'Learning', 'Finance', 'Home', 'Other'];
-//   const priorities = ['Low', 'Medium', 'High'];
-
-  // Initialize tasks from localStorage
-  useEffect(() => {
-    const storedTasks = localStorage.getItem('tasks');
-    const tasksToLoad = storedTasks ? JSON.parse(storedTasks) : initialTasks;
-    
-    setTasks(tasksToLoad);
-    
-    if (!storedTasks) {
-      localStorage.setItem('tasks', JSON.stringify(initialTasks));
-    }
-  }, []);
-
-  // Helper functions
   function getInitialTaskState() {
     return {
       title: "",
@@ -45,21 +37,14 @@ const Dashboard = () => {
     };
   }
 
-  function getUserTasks() {
+  const getFilteredTasks = (completed) => {
     if (!currentUser) return [];
-    return tasks.filter(task => task.userId === currentUser.id);
-  }
+    
+    const userTasks = completed 
+      ? getCompletedTasks(currentUser.id)
+      : getTodoTasks(currentUser.id);
 
-  function getTodoTasks() {
-    return getUserTasks().filter(task => !task.completed);
-  }
-
-  function getCompletedTasks() {
-    return getUserTasks().filter(task => task.completed);
-  }
-
-  function filterTaskList(taskList) {
-    return taskList.filter(task => {
+    return userTasks.filter(task => {
       const matchesSearch = 
         task.title.toLowerCase().includes(searchText.toLowerCase()) ||
         task.description?.toLowerCase().includes(searchText.toLowerCase());
@@ -69,48 +54,36 @@ const Dashboard = () => {
 
       return matchesSearch && matchesCategory && matchesPriority;
     });
-  }
+  };
 
-  function updateTasksInStorage(updatedTasks) {
-    setTasks(updatedTasks);
-    localStorage.setItem('tasks', JSON.stringify(updatedTasks));
-  }
-
-  // Task operations
-  function addTask() {
+  function handleAddTask() {
     if (!newTask.title.trim()) {
       alert("Please enter a task title");
       return;
     }
 
     const taskToAdd = {
-      id: Date.now(),
       userId: currentUser.id,
       title: newTask.title,
       description: newTask.description,
       category: newTask.category,
       priority: newTask.priority,
       completed: addToCompleted,
-      createdAt: new Date().toISOString().split('T')[0],
-      dueDate: newTask.dueDate || new Date().toISOString().split('T')[0]
+      dueDate: newTask.dueDate
     };
 
-    updateTasksInStorage([...tasks, taskToAdd]);
+    addTask(taskToAdd);
     setNewTask(getInitialTaskState());
     setShowAddModal(false);
   }
 
-  function toggleTaskCompletion(taskId) {
-    const updatedTasks = tasks.map(task =>
-      task.id === taskId ? { ...task, completed: !task.completed } : task
-    );
-    updateTasksInStorage(updatedTasks);
+  function handleToggleTask(taskId) {
+    toggleTaskCompletion(taskId);
   }
 
-  function deleteTask(taskId) {
+  function handleDeleteTask(taskId) {
     if (window.confirm("Are you sure you want to delete this task?")) {
-      const updatedTasks = tasks.filter(task => task.id !== taskId);
-      updateTasksInStorage(updatedTasks);
+      deleteTask(taskId);
     }
   }
 
@@ -119,9 +92,13 @@ const Dashboard = () => {
     setShowAddModal(true);
   }
 
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   // Filtered task lists
-  const filteredTodoTasks = filterTaskList(getTodoTasks());
-  const filteredCompletedTasks = filterTaskList(getCompletedTasks());
+  const filteredTodoTasks = getFilteredTasks(false);
+  const filteredCompletedTasks = getFilteredTasks(true);
 
   return (
     <>
@@ -143,16 +120,16 @@ const Dashboard = () => {
           title="Todo"
           tasks={filteredTodoTasks}
           onAddClick={() => openAddModal(false)}
-          onToggle={toggleTaskCompletion}
-          onDelete={deleteTask}
+          onToggle={handleToggleTask}
+          onDelete={handleDeleteTask}
         />
 
         <TaskColumn
           title="Completed"
           tasks={filteredCompletedTasks}
           onAddClick={() => openAddModal(true)}
-          onToggle={toggleTaskCompletion}
-          onDelete={deleteTask}
+          onToggle={handleToggleTask}
+          onDelete={handleDeleteTask}
           isCompleted
         />
       </div>
@@ -163,7 +140,7 @@ const Dashboard = () => {
           setNewTask={setNewTask}
           categories={categories}
           priorities={priorities}
-          onAdd={addTask}
+          onAdd={handleAddTask}
           onClose={() => setShowAddModal(false)}
         />
       )}
@@ -171,7 +148,6 @@ const Dashboard = () => {
   );
 };
 
-// Filter Controls Component
 function FilterControls({ 
   searchText, 
   setSearchText, 
@@ -217,7 +193,6 @@ function FilterControls({
   );
 }
 
-// Task Column Component
 function TaskColumn({ title, tasks, onAddClick, onToggle, onDelete, isCompleted = false }) {
   return (
     <div className="box">
@@ -239,7 +214,6 @@ function TaskColumn({ title, tasks, onAddClick, onToggle, onDelete, isCompleted 
   );
 }
 
-// Task Item Component
 function TaskItem({ task, onToggle, onDelete, isCompleted }) {
   return (
     <div className={`item ${isCompleted ? 'completed-item' : ''}`}>
@@ -261,7 +235,6 @@ function TaskItem({ task, onToggle, onDelete, isCompleted }) {
   );
 }
 
-// Add Task Modal Component
 function AddTaskModal({ newTask, setNewTask, categories, priorities, onAdd, onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>

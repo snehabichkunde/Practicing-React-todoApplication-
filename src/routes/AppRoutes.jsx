@@ -14,7 +14,7 @@ import Dashboard from '../pages/Dashboard';
 
 const AppRoutes = () => {
   return (
-    <BrowserRouter basename="/Practicing-React-todoApplication-">
+    <BrowserRouter basename="/Practicing-React-todoApplication-/">
       <Navbar />
       <Routes>
         <Route path={ROUTES.HOME} element={<Home />} />

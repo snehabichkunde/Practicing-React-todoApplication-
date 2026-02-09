@@ -1,37 +1,62 @@
 import { createContext, useContext } from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage";
-import {initialUsers} from "../data/initialData"
+import { useUsers } from "../context/UserContext";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useLocalStorage("user", null);
+  const { verifyCredentials, addUser, emailExists } = useUsers();
 
   const login = (email, password) => {
-    const foundUser = initialUsers.find(
-        (u) => u.email === email && u.password === password
-    );
-
+    const foundUser = verifyCredentials(email, password);
+    
     if (foundUser) {
-        const userData = {
+      const userData = {
         id: foundUser.id,
+        name: foundUser.name,
         email: foundUser.email,
-        };
+        role: foundUser.role,
+      };
+      setUser(userData);  
+      return { success: true };
+    }
+    return { success: false, message: "Invalid credentials" };
+  };
 
-        setUser(userData);  
-        return true;
+  const signup = (name, email, password) => {
+    if (emailExists(email)) {
+      return { success: false, message: "User already exists" };
     }
 
-  return false;
-};
+    try {
+      const newUser = addUser({
+        name,
+        email,
+        password,
+        role: 'user'
+      });
 
+      const userData = {
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+      };
+      setUser(userData);
+
+      return { success: true };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  };
 
   const logout = () => {
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );

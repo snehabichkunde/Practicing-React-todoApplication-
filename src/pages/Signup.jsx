@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
+import { USER_ROUTES } from '../constants/userProtectedRoutes';
+import { useAuth } from "../context/AuthContext";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -9,6 +11,10 @@ const Signup = () => {
     password: '',
     confirmPassword: ''
   });
+
+  const {signup} = useAuth();
+  const navigate = useNavigate(); 
+
 
   const handleChange = (e) => {
     setFormData({
@@ -19,7 +25,13 @@ const Signup = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Signup attempt:', formData);
+    const success = signup(formData.name, formData.email, formData.password);
+
+    if(success){
+      navigate(USER_ROUTES.Dashboard);
+    }else{
+      //show an error 
+    }
   };
 
   return (

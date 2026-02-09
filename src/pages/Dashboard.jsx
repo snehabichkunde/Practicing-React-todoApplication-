@@ -61,6 +61,7 @@ const Dashboard = () => {
       alert("Please enter a task title");
       return;
     }
+    // console.log(currentUser);
 
     const taskToAdd = {
       userId: currentUser.id,

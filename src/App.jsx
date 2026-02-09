@@ -15,16 +15,17 @@ const ThemedApp = () => {
 
 function App() {
   return (
-    <AuthProvider>
+    
       <UserProvider>
+        <AuthProvider>
         <TaskProvider>
     <ThemeProvider>
       <ThemedApp />
     </ThemeProvider>
     </TaskProvider>
+    </AuthProvider>
     </UserProvider>
     
-    </AuthProvider>
   );
 }
 

@@ -20,6 +20,7 @@ const Login = () => {
     navigate(USER_ROUTES.Dashboard);
   } else {
     //setError("Invalid email or password");
+    console.log("error");
   }
 };
 

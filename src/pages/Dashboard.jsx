@@ -4,6 +4,7 @@ import { useTasks } from "../context/TaskContext";
 import { useUsers } from "../context/UserContext";
 import { categories } from "../data/categories";
 import { priorities } from "../data/priorities";
+import {useDebounce} from "../hooks/useDebounce"
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -21,6 +22,7 @@ const Dashboard = () => {
   const currentUser = getUserByEmail(user.email);
   
   const [searchText, setSearchText] = useState("");
+  const [debouncedSearchText, isSearching] = useDebounce(searchText);
   const [filterCategory, setFilterCategory] = useState("All");
   const [filterPriority, setFilterPriority] = useState("All");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -46,8 +48,8 @@ const Dashboard = () => {
 
     return userTasks.filter(task => {
       const matchesSearch = 
-        task.title.toLowerCase().includes(searchText.toLowerCase()) ||
-        task.description?.toLowerCase().includes(searchText.toLowerCase());
+        task.title.toLowerCase().includes(debouncedSearchText.toLowerCase()) ||
+        task.description?.toLowerCase().includes(debouncedSearchText.toLowerCase());
       
       const matchesCategory = filterCategory === "All" || task.category === filterCategory;
       const matchesPriority = filterPriority === "All" || task.priority === filterPriority;
@@ -109,6 +111,7 @@ const Dashboard = () => {
         searchText={searchText}
         setSearchText={setSearchText}
         filterCategory={filterCategory}
+        isSearching = {isSearching}
         setFilterCategory={setFilterCategory}
         filterPriority={filterPriority}
         setFilterPriority={setFilterPriority}
@@ -123,6 +126,7 @@ const Dashboard = () => {
           onAddClick={() => openAddModal(false)}
           onToggle={handleToggleTask}
           onDelete={handleDeleteTask}
+          isSearching={isSearching && searchText}
         />
 
         <TaskColumn
@@ -132,6 +136,7 @@ const Dashboard = () => {
           onToggle={handleToggleTask}
           onDelete={handleDeleteTask}
           isCompleted
+          isSearching={isSearching && searchText}
         />
       </div>
 
@@ -153,6 +158,7 @@ function FilterControls({
   searchText, 
   setSearchText, 
   filterCategory, 
+  isSearching,
   setFilterCategory, 
   filterPriority, 
   setFilterPriority,
@@ -161,13 +167,18 @@ function FilterControls({
 }) {
   return (
     <div className="filters">
-      <input
-        type="text"
-        placeholder="Search tasks..."
-        value={searchText}
-        onChange={(e) => setSearchText(e.target.value)}
-        className="search-input"
-      />
+      <div className="search-wrapper">
+        <input
+          type="text"
+          placeholder="Search tasks..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          className="search-input"
+        />
+        {isSearching && searchText && (
+          <span className="search-loader">Searching...</span>
+        )}
+      </div>
       
       <select 
         value={filterCategory} 
@@ -194,7 +205,7 @@ function FilterControls({
   );
 }
 
-function TaskColumn({ title, tasks, onAddClick, onToggle, onDelete, isCompleted = false }) {
+function TaskColumn({ title, tasks, onAddClick, onToggle, onDelete, isCompleted = false, isSearching }) {
   return (
     <div className="box">
       <div className="box-header">
@@ -202,19 +213,22 @@ function TaskColumn({ title, tasks, onAddClick, onToggle, onDelete, isCompleted 
         <button onClick={onAddClick}>+</button>
       </div>
       
-      {tasks.map(task => (
-        <TaskItem
-          key={task.id}
-          task={task}
-          onToggle={onToggle}
-          onDelete={onDelete}
-          isCompleted={isCompleted}
-        />
-      ))}
+      {isSearching ? (
+        <div className="loading-tasks">Searching...</div>
+      ) : (
+        tasks.map(task => (
+          <TaskItem
+            key={task.id}
+            task={task}
+            onToggle={onToggle}
+            onDelete={onDelete}
+            isCompleted={isCompleted}
+          />
+        ))
+      )}
     </div>
   );
 }
-
 function TaskItem({ task, onToggle, onDelete, isCompleted }) {
   return (
     <div className={`item ${isCompleted ? 'completed-item' : ''}`}>

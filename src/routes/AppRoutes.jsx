@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
-import { USER_ROUTES } from '../constants/userProtectedRoutes';
 import {ProtectedRoute, AuthRoute} from '../constants/ProtectedRoute'
 
 import Navbar from '../components/Navbar';
@@ -17,21 +16,21 @@ const AppRoutes = () => {
     <BrowserRouter basename="/Practicing-React-todoApplication-/">
       <Navbar />
       <Routes>
-        <Route path={ROUTES.HOME} element={<Home />} />
-        <Route path={ROUTES.ABOUT} element={<About />} />
-        <Route path={ROUTES.LOGIN} element={
+        <Route path={ROUTES.public.HOME} element={<Home />} />
+        <Route path={ROUTES.public.ABOUT} element={<About />} />
+        <Route path={ROUTES.public.LOGIN} element={
                 <AuthRoute>
                   <Login />
                 </AuthRoute>
             }
         />
-        <Route path={ROUTES.SIGNUP} element={
+        <Route path={ROUTES.public.SIGNUP} element={
                 <AuthRoute>
                   <Signup />
                 </AuthRoute>
             }
         />
-        <Route path={USER_ROUTES.Dashboard} element={
+        <Route path={ROUTES.private.DASHBOARD} element={
                 <ProtectedRoute>
                   <Dashboard />
                 </ProtectedRoute>

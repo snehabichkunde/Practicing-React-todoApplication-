@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import { ROUTES } from "../constants/routes";
-import { USER_ROUTES } from "../constants/userProtectedRoutes";
 
 
 const Navbar = () => {
@@ -12,18 +11,18 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="nav-container">
-        <Link to={ROUTES.HOME} className="logo">
+        <Link to={ROUTES.public.HOME} className="logo">
           📝 TodoApp
         </Link>
 
         <div className="nav-links">
-          <Link to={ROUTES.HOME}>Home</Link>
-          <Link to={ROUTES.ABOUT}>About</Link>
+          <Link to={ROUTES.public.HOME}>Home</Link>
+          <Link to={ROUTES.public.ABOUT}>About</Link>
 
           {
             user
-              ? <><Link to={USER_ROUTES.Dashboard}>Dashboard</Link> <button onClick={logout}>Logout</button></>
-              : <Link to={ROUTES.LOGIN}>Login</Link>
+              ? <><Link to={ROUTES.private.DASHBOARD}>Dashboard</Link> <button onClick={logout}>Logout</button></>
+              : <Link to={ROUTES.public.LOGIN}>Login</Link>
           }
 
           <button onClick={toggleTheme} className="theme-toggle">

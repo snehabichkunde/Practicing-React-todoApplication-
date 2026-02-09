@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
-import { USER_ROUTES } from '../constants/userProtectedRoutes';
 import { useAuth } from "../context/AuthContext";
 
 const Signup = () => {
@@ -94,7 +93,7 @@ const Signup = () => {
         </form>
         
         <p className="login-link">
-          Already have an account? <Link to={ROUTES.LOGIN}>Login</Link>
+          Already have an account? <Link to={ROUTES.public.LOGIN}>Login</Link>
         </p>
       </div>
     </div>

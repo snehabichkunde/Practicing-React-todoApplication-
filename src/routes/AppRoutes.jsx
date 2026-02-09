@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
 import { USER_ROUTES } from '../constants/userProtectedRoutes';
-import ProtectedRoute from '../constants/ProtectedRoute'
+import {ProtectedRoute, AuthRoute} from '../constants/ProtectedRoute'
 
 import Navbar from '../components/Navbar';
 import Home from '../pages/Home';
@@ -19,8 +19,18 @@ const AppRoutes = () => {
       <Routes>
         <Route path={ROUTES.HOME} element={<Home />} />
         <Route path={ROUTES.ABOUT} element={<About />} />
-        <Route path={ROUTES.LOGIN} element={<Login />} />
-        <Route path={ROUTES.SIGNUP} element={<Signup />} />
+        <Route path={ROUTES.LOGIN} element={
+                <AuthRoute>
+                  <Login />
+                </AuthRoute>
+            }
+        />
+        <Route path={ROUTES.SIGNUP} element={
+                <AuthRoute>
+                  <Signup />
+                </AuthRoute>
+            }
+        />
         <Route path={USER_ROUTES.Dashboard} element={
                 <ProtectedRoute>
                   <Dashboard />

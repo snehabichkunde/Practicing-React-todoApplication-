@@ -1,16 +1,14 @@
 import { createContext, useContext } from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage";
-import { useUsers } from "../context/UserContext";
 
 const AuthContext = createContext(null);
 
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({ children, userApi }) => {  
   const [user, setUser] = useLocalStorage("user", null);
-  const { verifyCredentials, addUser, emailExists } = useUsers();
+  const { verifyCredentials, addUser, emailExists } = userApi;  
 
   const login = (email, password) => {
     const foundUser = verifyCredentials(email, password);
-    
     if (foundUser) {
       const userData = {
         id: foundUser.id,
@@ -28,7 +26,6 @@ export const AuthProvider = ({ children }) => {
     if (emailExists(email)) {
       return { success: false, message: "User already exists" };
     }
-
     try {
       const newUser = addUser({
         name,
@@ -36,7 +33,6 @@ export const AuthProvider = ({ children }) => {
         password,
         role: 'user'
       });
-
       const userData = {
         id: newUser.id,
         name: newUser.name,
@@ -44,7 +40,6 @@ export const AuthProvider = ({ children }) => {
         role: newUser.role,
       };
       setUser(userData);
-
       return { success: true };
     } catch (error) {
       return { success: false, message: error.message };

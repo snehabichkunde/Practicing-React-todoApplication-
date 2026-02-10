@@ -1,14 +1,12 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useTasks } from "../context/TaskContext";
-import { useUsers } from "../context/UserContext";
 import { categories } from "../data/categories";
 import { priorities } from "../data/priorities";
 import {useDebounce} from "../hooks/useDebounce"
 
-const Dashboard = () => {
+const Dashboard = ({ taskApi, userApi }) => {
   const { user } = useAuth();
-  const { getUserByEmail } = useUsers();
+  const { getUserByEmail } = userApi; 
   const {
     getTodoTasks,
     getCompletedTasks,
@@ -17,7 +15,7 @@ const Dashboard = () => {
     deleteTask,
     filterTasks,
     isLoading
-  } = useTasks();
+  } = taskApi; 
 
   const currentUser = getUserByEmail(user.email);
   

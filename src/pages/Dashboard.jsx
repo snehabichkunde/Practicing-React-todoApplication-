@@ -21,13 +21,18 @@ const Dashboard = () => {
 
   const currentUser = getUserByEmail(user.email);
   
-  const [searchText, setSearchText] = useState("");
-  const [debouncedSearchText, isSearching] = useDebounce(searchText);
-  const [filterCategory, setFilterCategory] = useState("All");
-  const [filterPriority, setFilterPriority] = useState("All");
   const [showAddModal, setShowAddModal] = useState(false);
-  const [addToCompleted, setAddToCompleted] = useState(false);
-  const [newTask, setNewTask] = useState(getInitialTaskState());
+  const [filter, setFilter] = useState({
+    searchText: "",
+    filterCategory: "All",
+    filterPriority: "All"
+  });
+  const [debouncedSearchText, isSearching] = useDebounce(filter.searchText);
+
+  const [addNewTask, setAddNewTask] = useState({
+      newTask: getInitialTaskState(),
+      addToCompleted: false
+  })
 
   function getInitialTaskState() {
     return {
@@ -51,32 +56,34 @@ const Dashboard = () => {
         task.title.toLowerCase().includes(debouncedSearchText.toLowerCase()) ||
         task.description?.toLowerCase().includes(debouncedSearchText.toLowerCase());
       
-      const matchesCategory = filterCategory === "All" || task.category === filterCategory;
-      const matchesPriority = filterPriority === "All" || task.priority === filterPriority;
+      const matchesCategory = filter.filterCategory === "All" || task.category === filter.filterCategory;
+      const matchesPriority = filter.filterPriority === "All" || task.priority === filter.filterPriority;
 
       return matchesSearch && matchesCategory && matchesPriority;
     });
   };
 
   function handleAddTask() {
-    if (!newTask.title.trim()) {
+    if (!addNewTask.newTask.title.trim()) {
       alert("Please enter a task title");
       return;
     }
-    // console.log(currentUser);
 
     const taskToAdd = {
       userId: currentUser.id,
-      title: newTask.title,
-      description: newTask.description,
-      category: newTask.category,
-      priority: newTask.priority,
-      completed: addToCompleted,
-      dueDate: newTask.dueDate
+      title: addNewTask.newTask.title,
+      description: addNewTask.newTask.description,
+      category: addNewTask.newTask.category,
+      priority: addNewTask.newTask.priority,
+      completed: addNewTask.addToCompleted,
+      dueDate: addNewTask.newTask.dueDate
     };
 
     addTask(taskToAdd);
-    setNewTask(getInitialTaskState());
+    setAddNewTask(prev => ({
+      ...prev,
+      newTask: getInitialTaskState()
+    }));
     setShowAddModal(false);
   }
 
@@ -91,7 +98,10 @@ const Dashboard = () => {
   }
 
   function openAddModal(isCompleted) {
-    setAddToCompleted(isCompleted);
+    setAddNewTask(prev => ({
+      ...prev,
+      addToCompleted: isCompleted
+    }));
     setShowAddModal(true);
   }
 
@@ -99,7 +109,6 @@ const Dashboard = () => {
     return <div>Loading...</div>;
   }
 
-  // Filtered task lists
   const filteredTodoTasks = getFilteredTasks(false);
   const filteredCompletedTasks = getFilteredTasks(true);
 
@@ -108,13 +117,9 @@ const Dashboard = () => {
       <h2>Welcome, {currentUser?.name}</h2>
       
       <FilterControls
-        searchText={searchText}
-        setSearchText={setSearchText}
-        filterCategory={filterCategory}
-        isSearching = {isSearching}
-        setFilterCategory={setFilterCategory}
-        filterPriority={filterPriority}
-        setFilterPriority={setFilterPriority}
+        filter={filter}
+        setFilter={setFilter}
+        isSearching={isSearching}
         categories={categories}
         priorities={priorities}
       />
@@ -126,7 +131,7 @@ const Dashboard = () => {
           onAddClick={() => openAddModal(false)}
           onToggle={handleToggleTask}
           onDelete={handleDeleteTask}
-          isSearching={isSearching && searchText}
+          isSearching={isSearching && filter.searchText}
         />
 
         <TaskColumn
@@ -136,14 +141,14 @@ const Dashboard = () => {
           onToggle={handleToggleTask}
           onDelete={handleDeleteTask}
           isCompleted
-          isSearching={isSearching && searchText}
+          isSearching={isSearching && filter.searchText}
         />
       </div>
 
       {showAddModal && (
         <AddTaskModal
-          newTask={newTask}
-          setNewTask={setNewTask}
+          newTask={addNewTask.newTask}
+          setNewTask={(value) => setAddNewTask(prev => ({ ...prev, newTask: value }))}
           categories={categories}
           priorities={priorities}
           onAdd={handleAddTask}
@@ -155,34 +160,33 @@ const Dashboard = () => {
 };
 
 function FilterControls({ 
-  searchText, 
-  setSearchText, 
-  filterCategory, 
+  filter,
+  setFilter,
   isSearching,
-  setFilterCategory, 
-  filterPriority, 
-  setFilterPriority,
   categories,
   priorities
 }) {
+  const handleFilterChange = (field, value) => {
+    setFilter(prev => ({ ...prev, [field]: value }));
+  };
+
   return (
     <div className="filters">
       <div className="search-wrapper">
         <input
           type="text"
           placeholder="Search tasks..."
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
+          value={filter.searchText}
+          onChange={(e) => handleFilterChange('searchText', e.target.value)}
           className="search-input"
         />
-        {isSearching && searchText && (
+        {isSearching && filter.searchText && (
           <span className="search-loader">Searching...</span>
         )}
       </div>
-      
       <select 
-        value={filterCategory} 
-        onChange={(e) => setFilterCategory(e.target.value)}
+        value={filter.filterCategory} 
+        onChange={(e) => handleFilterChange('filterCategory', e.target.value)}
         className="filter-select"
       >
         <option value="All">All Categories</option>
@@ -190,10 +194,9 @@ function FilterControls({
           <option key={cat} value={cat}>{cat}</option>
         ))}
       </select>
-      
       <select 
-        value={filterPriority} 
-        onChange={(e) => setFilterPriority(e.target.value)}
+        value={filter.filterPriority} 
+        onChange={(e) => handleFilterChange('filterPriority', e.target.value)}
         className="filter-select"
       >
         <option value="All">All Priorities</option>
@@ -204,7 +207,6 @@ function FilterControls({
     </div>
   );
 }
-
 function TaskColumn({ title, tasks, onAddClick, onToggle, onDelete, isCompleted = false, isSearching }) {
   return (
     <div className="box">

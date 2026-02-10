@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ROUTES } from '../constants/routes';
+import { PATHS } from '../constants/routes';
 import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
@@ -16,7 +16,7 @@ const Login = () => {
   const success = login(email, password);
 
   if (success) {
-    navigate(USER_ROUTES.Dashboard);
+    navigate(PATHS.Dashboard);
   } else {
     //setError("Invalid email or password");
     console.log("error");
@@ -57,7 +57,7 @@ const Login = () => {
         </form>
         
         <p className="signup-link">
-          Don't have an account? <Link to={ROUTES.public.SIGNUP}>Sign up</Link>
+          Don't have an account? <Link to={PATHS.SIGNUP}>Sign up</Link>
         </p>
       </div>
     </div>

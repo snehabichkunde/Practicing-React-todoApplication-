@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
-import { ROUTES } from '../constants/routes';
+import { PATHS } from '../constants/routes';
 import {useAuth} from '../context/AuthContext'
 
 const Home = () => {
   const {user} = useAuth();
-  const getStartedLink = user ? ROUTES.private.DASHBOARD : ROUTES.public.LOGIN;
+  const getStartedLink = user ? PATHS.DASHBOARD : PATHS.LOGIN;
   return (
     <div className="home-page">
       <div className="hero-section">
@@ -15,7 +15,7 @@ const Home = () => {
           <Link to={getStartedLink}>
             <button className="btn btn-primary">Get Started</button>
           </Link>
-          <Link to={ROUTES.public.ABOUT}>
+          <Link to={PATHS.ABOUT}>
             <button className="btn btn-secondary">Learn More</button>
           </Link>
         </div>

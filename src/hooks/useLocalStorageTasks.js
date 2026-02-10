@@ -52,9 +52,6 @@ export const useLocalStorageTasks = (storageKey = 'tasks', initialData = []) => 
   };
 
 
-  const getTaskById = (taskId) => {
-    return tasks.find(task => task.id === taskId);
-  };
 
   const addTask = (taskData) => {
     const newTask = {
@@ -69,16 +66,6 @@ export const useLocalStorageTasks = (storageKey = 'tasks', initialData = []) => 
     return newTask;
   };
 
-
-  const updateTask = (taskId, updates) => {
-    setTasks(prevTasks =>
-      prevTasks.map(task =>
-        task.id === taskId ? { ...task, ...updates } : task
-      )
-    );
-  };
-
-
   const toggleTaskCompletion = (taskId) => {
     setTasks(prevTasks =>
       prevTasks.map(task =>
@@ -90,11 +77,6 @@ export const useLocalStorageTasks = (storageKey = 'tasks', initialData = []) => 
 
   const deleteTask = (taskId) => {
     setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
-  };
-
- 
-  const deleteAllUserTasks = (userId) => {
-    setTasks(prevTasks => prevTasks.filter(task => task.userId !== userId));
   };
 
  
@@ -120,12 +102,9 @@ export const useLocalStorageTasks = (storageKey = 'tasks', initialData = []) => 
     getTasksByUserId,
     getTodoTasks,
     getCompletedTasks,
-    getTaskById,
     addTask,
-    updateTask,
     toggleTaskCompletion,
     deleteTask,
-    deleteAllUserTasks,
     filterTasks
   };
 };
